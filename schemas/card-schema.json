@@ -1,0 +1,270 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "m∴We Card Definition",
+  "description": "Schema for defining cards in the m∴We tarot-based deck battler",
+
+  "definitions": {
+    "suit": {
+      "type": "string",
+      "enum": ["kitsune", "nekomata", "mujina", "genbu", "usagi", "karasu", "jorogumo", "tsuki"],
+      "description": "The yokai suit or moon (tsuki) arcana. Kitsune=fox, Nekomata=cat, Mujina=squirrel/badger, Genbu=turtle, Usagi=rabbit, Karasu=crow tengu, Jorogumo=spider, Tsuki=moon"
+    },
+
+    "layer": {
+      "type": "string",
+      "enum": ["hardware", "firmware", "software"],
+      "description": "Which system layer the card primarily affects"
+    },
+
+    "cardType": {
+      "type": "string",
+      "enum": ["creature", "action", "modifier", "anchor", "moon"],
+      "description": "The functional type of the card"
+    },
+
+    "anchorType": {
+      "type": "string",
+      "enum": ["physical", "social", "cognitive", "sensory", "ritual"],
+      "description": "For anchor cards: what kind of grounding behavior"
+    },
+
+    "hormoneEffect": {
+      "type": "object",
+      "properties": {
+        "target": {
+          "type": "string",
+          "enum": ["estrogen", "testosterone", "cortisol", "dopamine", "serotonin", "oxytocin", "adrenaline"],
+          "description": "Which hormone/neurotransmitter is affected"
+        },
+        "direction": {
+          "type": "string",
+          "enum": ["increase", "decrease", "stabilize", "fluctuate"],
+          "description": "How the level changes"
+        },
+        "magnitude": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "Strength of the effect (1-5)"
+        },
+        "duration": {
+          "type": "string",
+          "enum": ["instant", "turn", "round", "persistent", "triggered"],
+          "description": "How long the effect lasts"
+        }
+      },
+      "required": ["target", "direction", "magnitude"]
+    },
+
+    "dataTag": {
+      "type": "string",
+      "description": "Tags for neural network clustering and research extraction",
+      "examples": ["dissociation", "grounding", "anxiety", "euphoria", "dysphoria", "coordination", "conflict", "resolution"]
+    }
+  },
+
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z]+_[a-z0-9_]+$",
+      "description": "Unique identifier: yokai_name format",
+      "examples": ["kitsune_clever_redirect", "tsuki_new", "nekomata_comfort_anchor"]
+    },
+
+    "name": {
+      "type": "string",
+      "description": "Display name of the card"
+    },
+
+    "suit": {
+      "$ref": "#/definitions/suit"
+    },
+
+    "number": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 14,
+      "description": "Card number within suit (1-14, like tarot)"
+    },
+
+    "cardType": {
+      "$ref": "#/definitions/cardType"
+    },
+
+    "layer": {
+      "$ref": "#/definitions/layer"
+    },
+
+    "stats": {
+      "type": "object",
+      "properties": {
+        "entropy": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Dissociation/chaos potential (higher = more destabilizing)"
+        },
+        "anchor": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Grounding/stability value (higher = more stabilizing)"
+        },
+        "energy": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Resource cost or generation"
+        },
+        "coordination": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Multi-agent cooperation bonus"
+        }
+      },
+      "required": ["entropy", "anchor", "energy"]
+    },
+
+    "anchorDetails": {
+      "type": "object",
+      "description": "Only for anchor-type cards",
+      "properties": {
+        "anchorType": {
+          "$ref": "#/definitions/anchorType"
+        },
+        "realWorldBehavior": {
+          "type": "string",
+          "description": "The actual grounding behavior this represents"
+        },
+        "promptText": {
+          "type": "string",
+          "description": "Text shown to player suggesting they perform the behavior"
+        },
+        "verificationMethod": {
+          "type": "string",
+          "enum": ["honor", "timer", "photo", "checkin"],
+          "description": "How we verify the behavior was performed"
+        }
+      }
+    },
+
+    "hormoneEffects": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/hormoneEffect"
+      },
+      "description": "Firmware layer effects"
+    },
+
+    "abilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "trigger": {
+            "type": "string",
+            "enum": ["play", "discard", "turn_start", "turn_end", "opponent_action", "threshold", "combo"],
+            "description": "When the ability activates"
+          },
+          "effect": {
+            "type": "string",
+            "description": "What the ability does mechanically"
+          },
+          "dataTags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/dataTag"
+            }
+          }
+        },
+        "required": ["name", "trigger", "effect"]
+      }
+    },
+
+    "flavorText": {
+      "type": "string",
+      "description": "Narrative/emotional text on the card"
+    },
+
+    "researchMetadata": {
+      "type": "object",
+      "description": "Data collection and neural network training hooks",
+      "properties": {
+        "dataTags": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/dataTag"
+          }
+        },
+        "narrativePatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Links to narrative-to-algorithm patterns this card exemplifies"
+        },
+        "coordinationSignals": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "What this card reveals about agent coordination when played"
+        }
+      }
+    },
+
+    "combos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "partnerCards": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Card IDs that combo with this card"
+          },
+          "comboName": {
+            "type": "string"
+          },
+          "comboEffect": {
+            "type": "string"
+          }
+        }
+      }
+    },
+
+    "spriteInteraction": {
+      "type": "object",
+      "description": "How autonomous Sprite agents interact with this card",
+      "properties": {
+        "spriteAffinity": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Which Sprite types are drawn to this card"
+        },
+        "autonomousPlayConditions": {
+          "type": "string",
+          "description": "When a Sprite might play this card autonomously"
+        },
+        "biologicSignal": {
+          "type": "string",
+          "description": "What playing this card signals to biological players"
+        }
+      }
+    }
+  },
+
+  "required": ["id", "name", "suit", "number", "cardType", "layer", "stats"]
+}

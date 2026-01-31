@@ -1,0 +1,310 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "m∴We Gameplay Event Log",
+  "description": "Schema for logging gameplay events for research and pattern analysis",
+
+  "definitions": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp"
+    },
+
+    "agentType": {
+      "type": "string",
+      "enum": ["biological", "sprite", "hybrid"],
+      "description": "What kind of agent took this action"
+    },
+
+    "eventCategory": {
+      "type": "string",
+      "enum": [
+        "card_play",
+        "card_draw",
+        "card_discard",
+        "ability_activation",
+        "anchor_behavior",
+        "hormone_change",
+        "entropy_change",
+        "coordination_attempt",
+        "coordination_result",
+        "turn_boundary",
+        "game_state_change",
+        "player_annotation",
+        "crisis_event",
+        "recovery_event"
+      ]
+    },
+
+    "coordinationPattern": {
+      "type": "object",
+      "description": "Extracted coordination algorithm pattern (links to narrative-to-algorithm extractor)",
+      "properties": {
+        "patternId": {
+          "type": "string",
+          "description": "Reference to documented pattern"
+        },
+        "patternName": {
+          "type": "string"
+        },
+        "agents": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "trigger": {
+          "type": "string"
+        },
+        "resolution": {
+          "type": "string"
+        },
+        "success": {
+          "type": "boolean"
+        }
+      }
+    },
+
+    "consentLevel": {
+      "type": "string",
+      "enum": [
+        "local_only",
+        "anonymized_research",
+        "identified_research",
+        "public_dataset"
+      ],
+      "description": "What level of data sharing the player has consented to"
+    }
+  },
+
+  "type": "object",
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this event"
+    },
+
+    "sessionId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Links events from the same game session"
+    },
+
+    "playerId": {
+      "type": "string",
+      "description": "Anonymized player identifier (or null if local_only)"
+    },
+
+    "timestamp": {
+      "$ref": "#/definitions/timestamp"
+    },
+
+    "eventCategory": {
+      "$ref": "#/definitions/eventCategory"
+    },
+
+    "agentType": {
+      "$ref": "#/definitions/agentType"
+    },
+
+    "agentId": {
+      "type": "string",
+      "description": "Which specific agent (player, sprite name, etc.)"
+    },
+
+    "gameState": {
+      "type": "object",
+      "description": "Snapshot of relevant game state at event time",
+      "properties": {
+        "turnNumber": {
+          "type": "integer"
+        },
+        "currentPhase": {
+          "type": "string"
+        },
+        "entropyLevel": {
+          "type": "integer"
+        },
+        "anchorLevel": {
+          "type": "integer"
+        },
+        "energyLevel": {
+          "type": "integer"
+        },
+        "hormoneState": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "cardsInHand": {
+          "type": "integer"
+        },
+        "cardsInPlay": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+
+    "eventData": {
+      "type": "object",
+      "description": "Event-specific payload",
+      "properties": {
+        "cardId": {
+          "type": "string"
+        },
+        "targetCardId": {
+          "type": "string"
+        },
+        "abilityName": {
+          "type": "string"
+        },
+        "valueChange": {
+          "type": "object",
+          "properties": {
+            "metric": {
+              "type": "string"
+            },
+            "oldValue": {
+              "type": "number"
+            },
+            "newValue": {
+              "type": "number"
+            },
+            "delta": {
+              "type": "number"
+            }
+          }
+        },
+        "anchorBehavior": {
+          "type": "object",
+          "properties": {
+            "behaviorType": {
+              "type": "string"
+            },
+            "completed": {
+              "type": "boolean"
+            },
+            "duration": {
+              "type": "number",
+              "description": "Time spent on anchor behavior in seconds"
+            },
+            "effectiveness": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Player-reported effectiveness"
+            }
+          }
+        },
+        "coordinationAttempt": {
+          "type": "object",
+          "properties": {
+            "initiator": {
+              "type": "string"
+            },
+            "participants": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "goal": {
+              "type": "string"
+            },
+            "mechanism": {
+              "type": "string"
+            }
+          }
+        },
+        "coordinationResult": {
+          "type": "object",
+          "properties": {
+            "success": {
+              "type": "boolean"
+            },
+            "outcome": {
+              "type": "string"
+            },
+            "consensusReached": {
+              "type": "boolean"
+            },
+            "dissent": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "playerAnnotation": {
+      "type": "object",
+      "description": "Optional player-added context",
+      "properties": {
+        "note": {
+          "type": "string",
+          "description": "Free-text annotation"
+        },
+        "mood": {
+          "type": "string"
+        },
+        "realWorldContext": {
+          "type": "string",
+          "description": "What was happening IRL during this play"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+
+    "extractedPatterns": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/coordinationPattern"
+      },
+      "description": "Coordination patterns identified in this event"
+    },
+
+    "researchFlags": {
+      "type": "object",
+      "description": "Flags for research analysis",
+      "properties": {
+        "interestingForCoordination": {
+          "type": "boolean"
+        },
+        "interestingForRecovery": {
+          "type": "boolean"
+        },
+        "interestingForHRT": {
+          "type": "boolean"
+        },
+        "interestingForMedication": {
+          "type": "boolean"
+        },
+        "anomalous": {
+          "type": "boolean"
+        },
+        "needsReview": {
+          "type": "boolean"
+        }
+      }
+    },
+
+    "consent": {
+      "$ref": "#/definitions/consentLevel"
+    }
+  },
+
+  "required": ["eventId", "sessionId", "timestamp", "eventCategory", "consent"]
+}
